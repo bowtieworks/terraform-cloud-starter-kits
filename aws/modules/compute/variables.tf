@@ -1,8 +1,3 @@
-variable "ami" {
-  description = "AMI to use for the instance."
-  type        = string
-}
-
 variable "instance_type" {
   description = "Instance type to use for the instance."
   type        = string
@@ -51,4 +46,22 @@ variable "controller_name" {
 variable "eip_addresses" {
   description = "List of elastic IP addresses to pull from to assign to each instace."
   type        = list(string)
+}
+
+variable "owner_id" {
+  description = "The ID of the owner of the AMI to be used"
+  type        = list(string)
+  default     = ["055761336000"]
+}
+
+variable "join_existing_cluster" {
+  description = "Flag to indicate if the deployment is to join an existing cluster"
+  type        = bool
+  default     = false
+}
+
+variable "join_controller_hostname" {
+  description = "Hostname of a controller to join these controllers with"
+  type        = string
+  default     = ""
 }

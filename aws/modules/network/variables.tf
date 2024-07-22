@@ -13,6 +13,12 @@ variable "vpc_name" {
   type        = string
 }
 
+variable "vpc_id" {
+  description = "The ID of a pre-existing VPC to use."
+  type        = string
+  default     = ""
+}
+
 variable "cidr_block" {
   description = "The IPv4 CIDR block for the VPC."
   type        = string
@@ -21,6 +27,12 @@ variable "cidr_block" {
 variable "subnet_names" {
   description = "List of subnet names to create or use. Specify the name for existing subnets or new ones."
   type        = list(string)
+}
+
+variable "subnet_id" {
+  description = "The ID of a pre-existing subnet to use."
+  type        = string
+  default     = ""
 }
 
 variable "subnet_cidrs" {

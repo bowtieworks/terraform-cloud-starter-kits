@@ -26,7 +26,6 @@ If opting to use this repository for deployment rather than as reference guide, 
 1. Clone repository
 2. Fill out the variables listed `terraform.tfvars` according to your AWS resource group information, network specifications, and naming conventions
     - Be sure to include the IP addresses that are to be used in the `eip_addresses` field
-    - The AMI to be used depends on the region in which the instances will be deployed. All of our AMIs can be found [here](https://api.bowtie.works/platforms/AWS).
 3. Apply the necessary environment variables, this includes:
     - Initial admin user credentials (See [Seeding Configuration](https://docs.bowtie.works/setup-controller.html#seeding-configuration) for an example on how to generate them)
     - Plaintext Bowtie Username in order to authenticate with the Bowtie API
@@ -38,7 +37,7 @@ If opting to use this repository for deployment rather than as reference guide, 
 
 #### Additional Notes
 
-- If run as is, the repository will deploy all of the necessary infrastructure within AWS to support a high-availability Bowtie deployment, however, in many cases much of that infrastructure may already be present. For example, if its preferred to use an existing Vnet, set the `create_vpc` flag to `false`, and specify the name of the Vnet to use in the `vpc_name` name field  
+- If run as is, the repository will deploy all of the necessary infrastructure within AWS to support a high-availability Bowtie deployment, however, in many cases much of that infrastructure may already be present. For example, if its preferred to use an existing vpc, simply provide the `vpc_id` and `subnet_id`, and the terraform code will deploy the controllers within the existing infrastructure
 - The number of instances deployed are dependent on the number of contoller names listed
-- If planning to join an existing cluster of controllers, be sure that the `sync_psk` matches the existing cluster's key and that the `entrypoint` in the `should_join.conf` file matches at least one hostname in the existing cluster
+- If planning to join an existing cluster of controllers, be sure that the `sync_psk` matches the existing cluster's key, that the `join_existing_cluster` flag is set to `true`, `join_controller_hostname` includes the hostname of an existing controller to join to
 - Once finished with the terraform deployment, we recommend heading to one of the controller hostnames in your web browser to configure your access policies and begin adding additional private resources
