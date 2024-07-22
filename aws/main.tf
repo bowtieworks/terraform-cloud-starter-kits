@@ -1,6 +1,5 @@
 provider "aws" {
   region  = var.region
-  profile = "AdministratorAccess-055769116956"
 }
 
 resource "random_uuid" "site_id" {}
