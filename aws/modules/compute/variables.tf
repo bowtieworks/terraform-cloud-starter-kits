@@ -3,29 +3,15 @@ variable "instance_type" {
   type        = string
 }
 
+variable "iam_instance_profile_name" {
+  description = "IAM profile to attach to the instance"
+  type = string
+  default = null
+}
+
 variable "vpc_security_group_ids" {
   description = "The VPC security group ID to associate with each instance."
   type        = list(string)
-}
-
-variable "site_id" {
-  description = "The SITE_ID that the controllers are to be instantiated within."
-  type        = string
-}
-
-variable "sync_psk" {
-  description = "The BOWTIE_SYNC_PSK that is to be shared across the cluster."
-  type        = string
-}
-
-variable "public_ssh_key" {
-  description = "The public ssh key that is to be used with the controllers."
-  type        = string
-}
-
-variable "user_credentials" {
-  description = "The user credentials to be deployed upon initialization."
-  type        = string
 }
 
 variable "subnet_ids" {
@@ -60,8 +46,14 @@ variable "join_existing_cluster" {
   default     = false
 }
 
-variable "join_controller_hostname" {
-  description = "Hostname of a controller to join these controllers with"
+variable "cloud_init_first_instance" {
+  description = "cloud-init to be used when deploying a new cluster"
   type        = string
-  default     = ""
+  default     = "cloud-init-first-instance.yaml"
+}
+
+variable "cloud_init_join_cluster" {
+  description = "cloud-init to be used when joining an existing cluster"
+  type        = string
+  default     = "cloud-init-join-cluster.yaml"
 }

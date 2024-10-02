@@ -1,0 +1,29 @@
+#cloud-config
+fqdn: c1.aws.bowtie.example.com
+hostname: c1.aws.bowtie.example.com
+preserve_hostname: false
+prefer_fqdn_over_hostname: true
+write_files:
+- path: /etc/dex/sso.yaml
+  content: |
+    type: gitlab
+    id: gitlab
+    name: GitLab
+    config:
+      clientID: <clientID>
+      clientSecret: <clientSecret>
+      redirectURI: $DEX_ORIGIN/dex/callback
+- path: /etc/bowtie-server.d/custom.conf
+  content: |
+    SITE_ID=<UUIDv4>
+    BOWTIE_SYNC_PSK=<UUIDv4>
+- path: /var/lib/bowtie/should-join.conf
+  content: |
+    entrypoint = "https://c0.aws.bowtie.example.com"
+- path: /var/lib/bowtie/skip-gui-init
+- path: /etc/update-at
+users:
+- name: root
+  ssh_authorized_keys:
+  - ssh-ed25519 AAAA admin
+  lock_passwd: false

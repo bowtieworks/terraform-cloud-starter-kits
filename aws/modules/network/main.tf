@@ -52,7 +52,7 @@ data "aws_internet_gateway" "existing_igw" {
 }
 
 resource "aws_internet_gateway" "igw" {
-  count = var.create_vpc ? 1 : 0
+  count  = var.create_vpc ? 1 : 0
   vpc_id = aws_vpc.vpc[0].id
 
   tags = {
@@ -75,7 +75,7 @@ data "aws_route_table" "existing_rt" {
 }
 
 resource "aws_route_table" "rt" {
-  count = var.create_vpc ? 1 : 0
+  count  = var.create_vpc ? 1 : 0
   vpc_id = aws_vpc.vpc[0].id
 
   route {
@@ -89,8 +89,8 @@ resource "aws_route_table" "rt" {
 }
 
 resource "aws_route_table_association" "subnet_rt_assoc" {
-  count = var.create_subnets ? length(var.subnet_names) : (var.subnet_id != "" ? 1 : length(data.aws_subnet.default_subnets))
+  count = var.create_subnets ? length(var.subnet_names) : 0
 
-  subnet_id = var.create_subnets ? aws_subnet.subnets[count.index].id : (var.subnet_id != "" ? data.aws_subnet.existing_subnet[0].id : data.aws_subnet.default_subnets[count.index].id)
-  route_table_id = var.create_vpc ? aws_route_table.rt[0].id : data.aws_route_table.existing_rt[0].id
+  subnet_id      = aws_subnet.subnets[count.index].id
+  route_table_id = aws_route_table.rt[0].id
 }

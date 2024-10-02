@@ -63,22 +63,10 @@ variable "instance_type" {
   type        = string
 }
 
-variable "sync_psk" {
-  description = "The BOWTIE_SYNC_PSK that is to be shared across the cluster."
+variable "iam_instance_profile_name" {
+  description = "IAM profile to attach to the instance"
   type        = string
-  default     = ""
-}
-
-variable "public_ssh_key" {
-  description = "The public ssh key that is to be used with the controllers."
-  type        = string
-  default     = ""
-}
-
-variable "user_credentials" {
-  description = "The user credentials to be deployed upon initialization."
-  type        = string
-  default     = ""
+  default     = null
 }
 
 variable "dns_zone_name" {
@@ -108,27 +96,23 @@ variable "join_existing_cluster" {
   default     = false
 }
 
-variable "join_controller_hostname" {
-  description = "Hostname of a controller to join these controllers with"
-  type        = string
-  default     = ""
-}
-
 variable "bowtie_username" {
   description = "The username for authenticating with the initialized Bowtie cluster."
   type        = string
-  default     = ""
 }
 
 variable "bowtie_password" {
   description = "The password for authenticating with the initialized Bowtie cluster."
   type        = string
   sensitive   = true
-  default     = ""
 }
 
 variable "ipv4_range" {
   description = "The ipv4 CIDR range to apply in the Bowtie site configuration."
   type        = string
-  default     = ""
+}
+
+variable "site_id" {
+  description = "The SITE_ID that the controllers are to be instantiated within."
+  type        = string
 }

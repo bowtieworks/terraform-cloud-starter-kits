@@ -116,3 +116,28 @@ resource "bowtie_resource_group" "all_access" {
   resources  = [bowtie_resource.all_ipv6.id, bowtie_resource.all_ipv4.id]
   inherited  = []
 }
+
+# Managed Domain
+resource "bowtie_dns" "dns" {
+  depends_on = [checkmate_http_health.healthcheck]
+  name       = var.dns_zone_name
+  servers = [{
+    addr = "1.1.1.1"
+  }]
+
+  excludes = flatten([
+    for controller in var.controller_name : {
+      name = "${controller}.${var.dns_zone_name}"
+    }
+  ])
+}
+
+# DNS Block list
+resource "bowtie_dns_block_list" "swg" {
+  depends_on = [checkmate_http_health.healthcheck]
+  name     = "Threat Intelligence Feed"
+  upstream = "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/domains/tif.txt"
+  override_to_allow = [
+    "permitted.example.com"
+  ]
+}

@@ -1,8 +1,6 @@
 provider "aws" {
-  region  = var.region
+  region = var.region
 }
-
-resource "random_uuid" "site_id" {}
 
 module "network" {
   source = "./modules/network"
@@ -27,19 +25,15 @@ module "security" {
 module "compute" {
   source = "./modules/compute"
 
-  owner_id                 = var.owner_id
-  instance_type            = var.instance_type
-  vpc_security_group_ids   = module.security.security_group_ids
-  subnet_ids               = module.network.subnet_ids
-  site_id                  = resource.random_uuid.site_id.result
-  sync_psk                 = var.sync_psk
-  user_credentials         = var.user_credentials
-  public_ssh_key           = var.public_ssh_key
-  dns_zone_name            = var.dns_zone_name
-  controller_name          = var.controller_name
-  eip_addresses            = var.eip_addresses
-  join_existing_cluster    = var.join_existing_cluster
-  join_controller_hostname = var.join_controller_hostname
+  owner_id                  = var.owner_id
+  instance_type             = var.instance_type
+  iam_instance_profile_name = var.iam_instance_profile_name
+  vpc_security_group_ids    = module.security.security_group_ids
+  subnet_ids                = module.network.subnet_ids
+  dns_zone_name             = var.dns_zone_name
+  controller_name           = var.controller_name
+  eip_addresses             = var.eip_addresses
+  join_existing_cluster     = var.join_existing_cluster
 
   depends_on = [
     module.network,
@@ -56,6 +50,6 @@ module "bowtie" {
   controller_name = var.controller_name
   bowtie_username = var.bowtie_username
   bowtie_password = var.bowtie_password
-  site_id         = resource.random_uuid.site_id.result
+  site_id         = var.site_id
   ipv4_range      = var.ipv4_range
 }
