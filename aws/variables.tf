@@ -63,7 +63,7 @@ variable "instance_type" {
   type        = string
 }
 
-variable "iam_instance_profile_name" {
+variable "iam_instance_profile" {
   description = "IAM profile to attach to the instance"
   type        = string
   default     = null

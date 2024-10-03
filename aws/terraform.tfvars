@@ -16,11 +16,12 @@ subnet_azs     = ["us-east-2a"]
 # subnet_id = "<subnet-id>"
 
 # Compute module
-instance_type   = "t2.large"
-dns_zone_name   = "aws.bowtie.example.com"
-controller_name = ["c0", "c1"]
-eip_addresses   = ["<IP>", "<IP>"]
-owner_id        = ["055761336000"]
+instance_type        = "t2.large"
+iam_instance_profile = "example-iam-role"
+dns_zone_name        = "aws.bowtie.example.com"
+controller_name      = ["c0", "c1"]
+eip_addresses        = ["<IP>", "<IP>"]
+owner_id             = ["055761336000"]
 
 #### Use the below if joining to an existing deployment ####
 # join_existing_cluster    = true

@@ -27,7 +27,7 @@ module "compute" {
 
   owner_id                  = var.owner_id
   instance_type             = var.instance_type
-  iam_instance_profile_name = var.iam_instance_profile_name
+  iam_instance_profile      = var.iam_instance_profile
   vpc_security_group_ids    = module.security.security_group_ids
   subnet_ids                = module.network.subnet_ids
   dns_zone_name             = var.dns_zone_name
