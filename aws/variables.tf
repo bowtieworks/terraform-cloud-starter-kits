@@ -4,6 +4,12 @@ variable "region" {
   default     = ""
 }
 
+variable "profile" {
+  description = "The AWS profile to use for authentication."
+  type        = string
+  default     = ""
+}
+
 variable "create_vpc" {
   description = "Whether to create a new VPC. If false, an existing VPC with the name provided will be used."
   type        = bool
@@ -115,4 +121,22 @@ variable "ipv4_range" {
 variable "site_id" {
   description = "The SITE_ID that the controllers are to be instantiated within."
   type        = string
+}
+
+variable "create_default_resources" {
+  description = "Whether to create default resources like IPv4/IPv6 resources, resource groups, managed domain, and DNS blocklist"
+  type        = bool
+  default     = false
+}
+
+variable "security_group_id" {
+  description = "ID of an existing security group to use instead of creating a new one"
+  type        = string
+  default     = ""
+}
+
+variable "create_security_group" {
+  description = "Whether to create a new security group or use an existing one"
+  type        = bool
+  default     = false
 }

@@ -1,5 +1,6 @@
 provider "aws" {
-  region = var.region
+  region  = var.region
+  profile = var.profile
 }
 
 module "network" {
@@ -19,21 +20,23 @@ module "network" {
 module "security" {
   source = "./modules/security"
 
-  vpc_id = module.network.vpc_id
+  vpc_id                = module.network.vpc_id
+  create_security_group = var.create_security_group
+  security_group_id     = var.security_group_id
 }
 
 module "compute" {
   source = "./modules/compute"
 
-  owner_id                  = var.owner_id
-  instance_type             = var.instance_type
-  iam_instance_profile      = var.iam_instance_profile
-  vpc_security_group_ids    = module.security.security_group_ids
-  subnet_ids                = module.network.subnet_ids
-  dns_zone_name             = var.dns_zone_name
-  controller_name           = var.controller_name
-  eip_addresses             = var.eip_addresses
-  join_existing_cluster     = var.join_existing_cluster
+  owner_id               = var.owner_id
+  instance_type          = var.instance_type
+  iam_instance_profile   = var.iam_instance_profile
+  vpc_security_group_ids = module.security.security_group_ids
+  subnet_ids             = module.network.subnet_ids
+  dns_zone_name          = var.dns_zone_name
+  controller_name        = var.controller_name
+  eip_addresses          = var.eip_addresses
+  join_existing_cluster  = var.join_existing_cluster
 
   depends_on = [
     module.network,
@@ -45,11 +48,12 @@ module "compute" {
 module "bowtie" {
   source = "./modules/bowtie"
 
-  instance_names  = module.compute.instance_names
-  dns_zone_name   = var.dns_zone_name
-  controller_name = var.controller_name
-  bowtie_username = var.bowtie_username
-  bowtie_password = var.bowtie_password
-  site_id         = var.site_id
-  ipv4_range      = var.ipv4_range
+  instance_names           = module.compute.instance_names
+  dns_zone_name            = var.dns_zone_name
+  controller_name          = var.controller_name
+  bowtie_username          = var.bowtie_username
+  bowtie_password          = var.bowtie_password
+  site_id                  = var.site_id
+  ipv4_range               = var.ipv4_range
+  create_default_resources = var.create_default_resources
 }

@@ -33,3 +33,9 @@ variable "ipv4_range" {
   description = "The ipv4 CIDR range to apply in the Bowtie site configuration."
   type        = string
 }
+
+variable "create_default_resources" {
+  description = "Whether to create default resources like IPv4/IPv6 resources, resource groups, managed domain, and DNS blocklist"
+  type        = bool
+  default     = false
+}

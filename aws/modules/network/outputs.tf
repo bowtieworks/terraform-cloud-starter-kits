@@ -1,5 +1,9 @@
 locals {
-  vpc_id = var.create_vpc ? aws_vpc.vpc[0].id : data.aws_vpc.existing_vpc[0].id
+  vpc_id = var.create_vpc ? (length(aws_vpc.vpc) > 0 ? aws_vpc.vpc[0].id : "") : var.vpc_id
+  
+  subnet_ids = var.create_subnets ? [for subnet in aws_subnet.subnets : subnet.id] : (
+    var.subnet_id != "" ? [var.subnet_id] : []
+  )
 }
 
 output "vpc_id" {
@@ -7,5 +11,5 @@ output "vpc_id" {
 }
 
 output "subnet_ids" {
-  value = var.create_subnets ? [for subnet in aws_subnet.subnets : subnet.id] : (var.subnet_id != "" ? [data.aws_subnet.existing_subnet[0].id] : [for subnet in data.aws_subnet.default_subnets : subnet.id])
+  value = local.subnet_ids
 }

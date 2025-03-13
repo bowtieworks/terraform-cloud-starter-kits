@@ -9,7 +9,11 @@ resource "aws_vpc" "vpc" {
 
 data "aws_vpc" "existing_vpc" {
   count = var.create_vpc ? 0 : (var.vpc_id != "" ? 1 : 0)
-  id    = var.vpc_id
+  
+  filter {
+    name   = "vpc-id"
+    values = [var.vpc_id]
+  }
 }
 
 resource "aws_subnet" "subnets" {
@@ -25,7 +29,11 @@ resource "aws_subnet" "subnets" {
 
 data "aws_subnet" "existing_subnet" {
   count = var.subnet_id != "" ? 1 : 0
-  id    = var.subnet_id
+  
+  filter {
+    name   = "subnet-id"
+    values = [var.subnet_id]
+  }
 }
 
 data "aws_subnet" "default_subnets" {
@@ -43,7 +51,7 @@ data "aws_subnet" "default_subnets" {
 }
 
 data "aws_internet_gateway" "existing_igw" {
-  count = var.create_vpc ? 0 : 1
+  count = 0
 
   filter {
     name   = "attachment.vpc-id"
@@ -61,7 +69,7 @@ resource "aws_internet_gateway" "igw" {
 }
 
 data "aws_route_table" "existing_rt" {
-  count = var.create_vpc ? 0 : 1
+  count = 0
 
   filter {
     name   = "vpc-id"

@@ -1,3 +1,5 @@
+### Example configuration for deploying a new, single-peer, Bowtie site within an existing VPC and Subnet.
+
 region  = "us-east-2" # The AWS region the resources will be created within.
 profile = "example-profile" # The AWS profile to use for authentication.
 
@@ -16,3 +18,26 @@ site_id         = "00000000-0000-4000-8000-000000000000" # The site ID to be use
 bowtie_username = "admin@bowtie.example.com" # The username to be used for the Bowtie site.
 bowtie_password = "example_password" # The password to be used for the Bowtie site.
 create_default_resources = true # Whether to create default resources for the Bowtie site.
+
+### Example cloud-init file that should reside in /modules/compute/cloud-init-first-instance.yaml
+
+# #cloud-config
+# fqdn: c0.bowtie.example.com
+# hostname: c0.bowtie.example.com
+# preserve_hostname: false
+# prefer_fqdn_over_hostname: true
+# write_files:
+# - path: /etc/bowtie-server.d/custom.conf
+#   content: |
+#     SITE_ID=00000000-0000-4000-8000-000000000000
+#     BOWTIE_SYNC_PSK=11111111-1111-4111-9111-111111111111
+# - path: /var/lib/bowtie/init-users
+#   content: |
+#     admin@bowtie.example.com:$argon2i$v=19$m=4096,t=3,p=1$YzQzMWI4NzItMjkxOC00YmQwLWE5YjQtOTNlMDQ1OGJkNmE1$H1/LvkX3DlsuIheeaZJ2lkM839wUdgiA7rrR6T9rpOc
+# - path: /var/lib/bowtie/skip-gui-init
+# - path: /etc/update-at
+# users:
+# - name: root
+#   ssh_authorized_keys:
+#   - ssh-ed25519 AAAA example-key
+#   lock_passwd: false
