@@ -1,4 +1,3 @@
-# AWS Configuration
 variable "region" {
   description = "The AWS region the resources will be created within."
   type        = string
@@ -63,8 +62,9 @@ variable "subnet_cidrs" {
 variable "subnet_azs" {
   description = "List of availability zones for the subnets."
   type        = list(string)
-  default     = []
+  default     = ["us-east-1a"]
 }
+
 # Security Configuration
 variable "create_security_group" {
   description = "Whether to create a new security group or use an existing one."
@@ -75,7 +75,6 @@ variable "create_security_group" {
 variable "security_group_id" {
   description = "ID of an existing security group to use if create_security_group is false."
   type        = string
-  default     = ""
 }
 
 # Instance Configuration
@@ -141,6 +140,18 @@ variable "eip_domain" {
 }
 
 # Cloud-Init Configuration
+variable "cloud_init_first_instance" {
+  description = "Template to use for the first instance's cloud-init configuration."
+  type        = string
+  default     = "cloud-init-first-instance.tftpl"
+}
+
+variable "cloud_init_join_cluster" {
+  description = "Template to use for joining instances' cloud-init configuration."
+  type        = string
+  default     = "cloud-init-join-cluster.tftpl"
+}
+
 variable "site_id" {
   description = "The site ID to use in cloud-init configuration."
   type        = string
@@ -155,7 +166,6 @@ variable "sync_psk" {
 variable "admin_email" {
   description = "Admin email address for initialization."
   type        = string
-  default     = "admin@bowtie.example.com"
 }
 
 variable "admin_password_hash" {
@@ -167,13 +177,11 @@ variable "admin_password_hash" {
 variable "ssh_key" {
   description = "SSH public key for root access."
   type        = string
-  default     = "ssh-ed25519 AAAA example-key"
 }
 
 variable "sso_config" {
   description = "Optional SSO configuration."
   type        = string
-  default     = ""
 }
 
 # DNS Configuration
@@ -186,34 +194,10 @@ variable "create_dns_records" {
 variable "route53_zone_id" {
   description = "The ID of the Route53 hosted zone where DNS records will be created."
   type        = string
-  default     = ""
 }
 
 variable "dns_ttl" {
   description = "The TTL for the DNS records (in seconds)."
   type        = number
   default     = 300
-}
-
-# Bowtie Configuration
-variable "bowtie_username" {
-  description = "The username for authenticating with the Bowtie cluster."
-  type        = string
-}
-
-variable "bowtie_password" {
-  description = "The password for authenticating with the Bowtie cluster."
-  type        = string
-  sensitive   = true
-}
-
-variable "ipv4_range" {
-  description = "The IPv4 CIDR range to apply in the Bowtie site configuration."
-  type        = string
-}
-
-variable "create_default_resources" {
-  description = "Whether to create default resources like IPv4/IPv6 resources, resource groups, managed domain, and DNS blocklist."
-  type        = bool
-  default     = false
 }

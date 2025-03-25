@@ -2,38 +2,13 @@
 
 This repository provides a solution for deploying a high-availability cluster of Bowtie controllers in AWS using Terraform. You can use it either as a "1-click" deployment option by replacing the variables listed, or as a reference guide for the infrastructure needed to support Bowtie controllers in AWS.
 
-## What This Deployment Creates
+## Deployment Components
 
-In addition to standing up a new Bowtie site, the deployment process also creates and configures the following AWS resources:
-
-- VPC
-- Subnet
-- Route Table
-- Internet Gateway
-- Security Group
-- EC2 Instances
-
-## Prerequisites
-
-Before beginning deployment, complete the following steps:
-
-1. **Create Elastic IP Addresses**
-   - Create as many [elastic IP addresses](https://us-east-2.console.aws.amazon.com/ec2/home?region=us-east-2#Addresses:) as the number of instances you plan to deploy
-   - These should be created in the same AWS region where you'll deploy your instances
-
-2. **Plan Your DNS Configuration**
-   - Decide on the hostname for each controller instance
-   - Set up the corresponding DNS entries for each hostname
-   - Note: When setting the parameters in your tfvars file, you'll split the FQDN between `dns_zone_name` and `controller_name`
-   - Example: For FQDN `c0.aws.bowtie.example.com`, use:
-     - `dns_zone_name`: `aws.bowtie.example.com`
-     - `controller_name`: `c0`
-
-3. **Create a Cloud-Init File**
-   - This file seeds your deployment with initial configuration parameters
-   - Can include settings like admin credentials, SSO configuration, SSH access keys, and controller update preferences
-   - An example can be found in our [public documentation](https://docs.bowtie.works/setup-controller.html#seeding-configuration)
-   - Or use [our cloud-init generation script](https://github.com/bowtieworks/cloud-init-gen) to create one (recommended option)
+- AWS infrastructure (VPC, subnets, security groups)
+- EC2 controller instances
+- Elastic IP addresses
+- Route53 DNS records (optional)
+- Bowtie site configuration
 
 ## Deployment Steps
 
@@ -43,33 +18,83 @@ Before beginning deployment, complete the following steps:
    - AWS authentication
    - AWS resource group information 
    - Network details 
-   - See the [examples](./examples/) directory for sample configurations covering various deployment types
 
-4. Provide the necessary `cloud-init` files in the [compute](./modules/compute) module:
-   - For a deploying a new, single controller: Place one file at `module/compute/cloud-init-first-instance.yaml`
-   - For joining an existing cluster: Place one file at `module/compute/cloud-init-join-cluster.yaml`
-   - For high-availability deployment: Place two files:
-     - First controller: `module/compute/cloud-init-first-instance.yaml`
-     - Subsequent controllers: `module/compute/cloud-init-join-cluster.yaml`
-   - You can use the default file locations or specify your own paths
-
-5. Set required environment variables:
+3. Set required environment variables:
    - Bowtie Username (for API authentication)
    - Bowtie Password (for API authentication)
-   - The `site_id` from your cloud-init file(s)
 
-6. Initialize, validate, and deploy:
+4. Initialize, validate, and deploy:
    - Run `terraform init` to prepare the environment
    - Run `terraform plan` to validate the expected deployment
    - Run `terraform apply` to deploy
 
-## Additional Notes
+## Deployment Options
 
-- See [examples](./examples/) for deploying within an existing VPC/subnet or creating new ones
-- The number of instances deployed depends on the number of controller names listed
-- When joining an existing cluster:
-   - Ensure the `sync_psk` matches the existing cluster's key
-   - Set the `join_existing_cluster` flag to `true`
-- After deployment, visit one of your controller hostnames in a web browser to:
-   - Configure access policies
-   - Add additional private resources
+### Fresh Deployment
+
+For a new deployment in a new VPC:
+
+```hcl
+create_vpc = true
+vpc_name = "bowtie-prod"
+controller_count = 2
+create_eips = true
+```
+
+### Using Existing Infrastructure
+
+To deploy within existing AWS infrastructure:
+
+```hcl
+create_vpc = false
+vpc_id = "vpc-12345abcdef"
+create_subnets = false
+subnet_id = "subnet-12345abcdef"
+create_security_group = false
+security_group_id = "sg-12345abcdef"
+```
+
+### Using Existing Elastic IPs
+
+If you already have Elastic IPs allocated:
+
+```hcl
+create_eips = false
+eip_addresses = ["203.0.113.10", "203.0.113.11"]
+```
+
+### Adding DNS Entries
+
+To automatically create DNS records in Route53:
+
+```hcl
+create_dns_records = true
+route53_zone_id = "Z1234567890ABCD"
+```
+
+## High Availability Deployment
+
+For high availability deployments:
+
+```hcl
+controller_count = 3  # Creates a 3-node cluster
+```
+
+In HA mode:
+- The first controller becomes the primary node
+- Subsequent controllers automatically join the primary node
+- All controllers share the same site ID and sync key
+
+## Cloud-Init Configuration
+
+The deployment uses cloud-init to configure the controllers at boot time. This configuration includes:
+
+- Setting the hostname and FQDN
+- Configuring the site ID and sync key
+- Setting up the admin user
+- Configuring SSH access
+- (Optionally) Setting up SSO integration
+
+It's recommended to use [our cloud-init generation script](https://github.com/bowtieworks/cloud-init-gen) to generate the information needed in order to fully seed the deployment.
+
+Reach out to taylor@bowtie.works if you have any questions.

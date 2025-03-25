@@ -1,0 +1,25 @@
+#cloud-config
+fqdn: ${controller_name}.${dns_zone_name}
+hostname: ${controller_name}.${dns_zone_name}
+preserve_hostname: false
+prefer_fqdn_over_hostname: true
+write_files:
+%{ if sso_config != "" ~}
+- path: /etc/dex/sso.yaml
+  content: |
+    ${indent(4, sso_config)}
+%{ endif ~}
+- path: /etc/bowtie-server.d/custom.conf
+  content: |
+    SITE_ID=${site_id}
+    BOWTIE_SYNC_PSK=${sync_psk}
+- path: /var/lib/bowtie/init-users
+  content: |
+    ${admin_email}:${admin_password_hash}
+- path: /var/lib/bowtie/skip-gui-init
+- path: /etc/update-at
+users:
+- name: root
+  ssh_authorized_keys:
+  - ${ssh_key}
+  lock_passwd: false
