@@ -188,18 +188,59 @@ resource "aws_eip" "controller_eips" {
   }
 }
 
+#--------------------------
+# DNS Records
+#--------------------------
+
+resource "aws_route53_record" "controller_records" {
+  count   = var.create_dns_records && var.route53_zone_id != "" ? local.actual_controller_count : 0
+  zone_id = var.route53_zone_id
+  name    = "${local.generated_controller_names[count.index]}.${var.dns_zone_name}"
+  type    = "A"
+  ttl     = var.dns_ttl
+  records = [
+    var.create_eips ? aws_eip.controller_eips[count.index].public_ip : (
+      count.index < length(var.eip_addresses) ? var.eip_addresses[count.index] : aws_eip.controller_eips[count.index].public_ip
+    )
+  ]
+}
+
+# Wait for DNS propagation
+resource "time_sleep" "dns_propagation" {
+  count = var.create_dns_records && var.route53_zone_id != "" ? 1 : 0
+  depends_on = [aws_route53_record.controller_records]
+  
+  create_duration = "${var.dns_propagation_wait}s"
+}
+
+# Create a dependency connection
+resource "null_resource" "dns_dependency" {
+  count = var.create_dns_records && var.route53_zone_id != "" ? 1 : 0
+  
+  triggers = {
+    # This will change whenever the time_sleep resource changes
+    dns_propagation_complete = var.create_dns_records ? time_sleep.dns_propagation[0].id : "no-dns"
+  }
+}
+
 data "aws_ami" "controller" {
   most_recent = true
   owners      = var.owner_id
 }
 
 resource "aws_instance" "instance" {
-  count                       = local.actual_controller_count
-  ami                         = data.aws_ami.controller.id
-  iam_instance_profile        = var.iam_instance_profile
-  instance_type               = var.instance_type
-  subnet_id                   = var.create_subnets ? aws_subnet.subnets[0].id : var.subnet_id
-  vpc_security_group_ids      = [data.aws_security_group.sg_data.id]
+  count                  = local.actual_controller_count
+  ami                    = data.aws_ami.controller.id
+  iam_instance_profile   = var.iam_instance_profile
+  instance_type          = var.instance_type
+  subnet_id              = var.create_subnets ? aws_subnet.subnets[0].id : var.subnet_id
+  vpc_security_group_ids = [data.aws_security_group.sg_data.id]
+
+  # Create instances only after DNS propagation if DNS is being used
+  depends_on = [
+    aws_eip.controller_eips,
+    null_resource.dns_dependency
+  ]
 
   user_data = var.join_existing_cluster ? templatefile("${path.module}/${var.cloud_init_join_cluster}", {
     controller_name    = local.generated_controller_names[count.index]
@@ -242,22 +283,10 @@ resource "aws_eip_association" "eip_assoc" {
   allocation_id = var.create_eips ? aws_eip.controller_eips[count.index].id : (
     count.index < length(var.eip_addresses) ? data.aws_eip.eip_data[count.index].id : aws_eip.controller_eips[count.index].id
   )
-}
-
-#--------------------------
-# DNS Records
-#--------------------------
-
-resource "aws_route53_record" "controller_records" {
-  count   = var.create_dns_records && var.route53_zone_id != "" ? local.actual_controller_count : 0
-  zone_id = var.route53_zone_id
-  name    = "${local.generated_controller_names[count.index]}.${var.dns_zone_name}"
-  type    = "A"
-  ttl     = var.dns_ttl
-  records = [
-    var.create_eips ? aws_eip.controller_eips[count.index].public_ip : (
-      count.index < length(var.eip_addresses) ? var.eip_addresses[count.index] : aws_eip.controller_eips[count.index].public_ip
-    )
+  
+  depends_on = [
+    aws_instance.instance,
+    aws_eip.controller_eips
   ]
 }
 
@@ -273,7 +302,7 @@ resource "checkmate_http_health" "healthcheck" {
   method = "GET"
 
   # Increase timeouts and interval for better reliability
-  timeout = 1000 * 60 * 10
+  timeout = 1000 * 60 * 2
   interval = 10000
 
   # Expect a status 200 OK

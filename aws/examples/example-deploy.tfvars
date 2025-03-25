@@ -91,6 +91,12 @@ ipv4_range       = "10.10.0.0/24"       # IPv4 range for internal resources
 create_default_resources = true          # Create default resources in Bowtie
 
 # Optional: SSO Configuration
-# Uncomment and edit the following for SSO integration
-# You need to use proper string formatting with newlines (\n) for multi-line values
-# sso_config = "type: gitlab\nid: gitlab\nname: GitLab\nconfig:\n  clientID: 5958e\n  clientSecret: gloas-456f7\n  redirectURI: $DEX_ORIGIN/dex/callback"
+# sso_config          = <<EOT
+#   type: gitlab
+#   id: gitlab
+#   name: GitLab
+#   config:
+#     clientID: ****
+#     clientSecret: ****
+#     redirectURI: $DEX_ORIGIN/dex/callback
+# EOT

@@ -201,3 +201,9 @@ variable "dns_ttl" {
   type        = number
   default     = 300
 }
+
+variable "dns_propagation_wait" {
+  description = "Time to wait (in seconds) for DNS records to propagate before creating instances"
+  type        = number
+  default     = 60
+}

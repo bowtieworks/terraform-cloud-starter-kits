@@ -195,6 +195,12 @@ variable "dns_ttl" {
   default     = 300
 }
 
+variable "dns_propagation_wait" {
+  description = "Time to wait (in seconds) for DNS records to propagate before creating instances"
+  type        = number
+  default     = 60
+}
+
 # Bowtie Configuration
 variable "bowtie_username" {
   description = "The username for authenticating with the Bowtie cluster."

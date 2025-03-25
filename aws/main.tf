@@ -9,6 +9,14 @@ terraform {
       source  = "bowtieworks/bowtie"
       version = "0.6.0"
     }
+    time = {
+      source  = "hashicorp/time"
+      version = "~> 0.9.0"
+    }
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.2.0"
+    }
   }
 }
 
@@ -75,9 +83,10 @@ module "infrastructure" {
   sso_config          = var.sso_config
 
   # DNS Configuration
-  create_dns_records = var.create_dns_records
-  route53_zone_id    = var.route53_zone_id
-  dns_ttl            = var.dns_ttl
+  create_dns_records   = var.create_dns_records
+  route53_zone_id      = var.route53_zone_id
+  dns_ttl              = var.dns_ttl
+  dns_propagation_wait = var.dns_propagation_wait
 }
 
 # Configure Bowtie resources 
