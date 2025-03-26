@@ -7,7 +7,7 @@ location        = "eastus"
 #-----------------------------------------------------
 # Resource Group Configuration
 #-----------------------------------------------------
-create_resource_group = true
+create_resource_group = false
 resource_group_name   = "bowtie-demo"
 #-----------------------------------------------------
 # Network Configuration
@@ -25,9 +25,9 @@ nsg_name      = "bowtie-nsg"
 #-----------------------------------------------------
 vm_size           = "Standard_D2s_v3"
 admin_ssh_public_key_path = "/Users/account_name/.ssh/example_rsa.pub"  # This will be overwritten by cloud-init ssh-key
-controller_count  = 1
-create_public_ips = true
-allocation_method = "Static"
+controller_count  = 2
+create_public_ips = false
+public_ip_addresses = ["pip_1", "pip_2"]
 #-----------------------------------------------------
 # DNS Configuration
 #-----------------------------------------------------

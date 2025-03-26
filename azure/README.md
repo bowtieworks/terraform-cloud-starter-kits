@@ -1,46 +1,121 @@
-## Deploying Bowtie controllers in Azure using Terraform
+# Deploying Bowtie Controllers in Azure Using Terraform
 
-This repository serves an example for deploying a high-avilability cluster of controllers in Azure using Terraform. It can either act as a "1-click" deploy option by replacing the variables listed with one's own respective values, or, it may be used a reference guide for the infrastructure needed to support standing up Bowtie controllers in Azure. The deployment process includes the following infrastructure creation and association:
+This repository provides a solution for deploying a high-availability cluster of Bowtie controllers in Azure using Terraform. You can use it either as a "1-click" deployment option by replacing the variables listed, or as a reference guide for the infrastructure needed to support Bowtie controllers in Azure.
 
-- resource groups
-- vnets
-- subnets
-- network security group
-- port rules
-- virtual machines
-- Bowtie site deployment and route modifications
+## Deployment Components
 
-#### Prerequisites
+- Azure resource group
+- Virtual network and subnet
+- Network security group
+- Virtual machines
+- Public IP addresses
+- Azure DNS records (optional)
+- Bowtie site configuration
 
-This repository operates on the assumption that one or more [public IP address objects](https://portal.azure.com/#view/HubsExtension/BrowseResource/resourceType/Microsoft.Network%2FPublicIpAddresses) have already been created under the `Resource Group` in which the instances will be deployed within. Approaching the installation in this way allows for the hostnames that are to be used to have their DNS settings prepared prior to the controller initialization. 
+## Deployment Steps
 
-Due to this, a few prerequisites should be completed prior to deployment: 
+1. Clone this repository
 
-1. Create a `Resource Group` if one is not already prepared
-2. Create as many `public IP address` objects as instances expected to be deployed. The configuration will be assigning a public IP address to each instance
-    - Note the `name` of each object, as this will be used below
-3. Decide on the hostname to assign to each controller instance and then setup the corresponding DNS entries
-    - Note that the fqdn will be split up between a `dns_zone_name` and a `controller_name` when building your terraform configuration file. For example, if the fqdn is `c0.az.bowtie.example.com` then the `dns_zone_name` will be `az.bowtie.example.com` while the `controller_name` will be `c0`.
+2. Configure `terraform.tfvars` with:
+   - Azure authentication 
+   - Resource group information
+   - Network details
+   - See [examples](./examples/) for sample tfvar files that cover various deployment types
 
-#### Deployment steps
+3. Set required environment variables:
+   - Bowtie Username (for API authentication)
+   - Bowtie Password (for API authentication)
+   - Azure credentials (if not using Azure CLI authentication)
 
-If opting to use this repository for deployment rather than as reference guide, follow the below steps:
+4. Initialize, validate, and deploy:
+   - Run `terraform init` to prepare the environment
+   - Run `terraform plan` to validate the expected deployment
+   - Run `terraform apply` to deploy
 
-1. Clone repository
-2. Fill out the variables listed `terraform.tfvars` according to your Azure resource group information, network specifications, and naming conventions
-    - Be sure to include the names of the `public IP address` objects that will be provisioned to each instance
-3. Apply the necessary environment variables, this includes:
-    - Initial admin user credentials (See [Seeding Configuration](https://docs.bowtie.works/setup-controller.html#seeding-configuration) for an example on how to generate them)
-    - Plaintext Bowtie Username in order to authenticate with the Bowtie API
-    - Plaintext Bowtie Password in order to authenticate with the Bowtie API
-    - `BOWTIE_SYNC_PSK` (We recommend using `uuidgen` to create a new uuidv4; **must be lowercase**)
-4. Run `terraform init` to prepare the environment
-5. Run `terraform plan` to validate the expected deployment
-6. When ready, run `terraform apply` to deploy
+## Deployment Options
 
-#### Additional Notes
+### Fresh Deployment
 
-- If run as is, the repository will deploy all of the necessary infrastructure within Azure to support a high-availability Bowtie deployment, however, in many cases much of that infrastructure may already be present. For example, if its preferred to use an existing Vnet, set the `create_vnet` flag to `false`, and specify the name of the Vnet to use in the `vnet_name` name field  
-- The number of instances deployed are dependent on the number of controller names listed
-- If planning to join an existing cluster of controllers, be sure that the `sync_psk` matches the existing cluster's key and that the `entrypoint` in the `should_join.conf` file matches at least one hostname in the existing cluster
-- Once finished with the terraform deployment, we recommend heading to one of the controller hostnames in your web browser to configure your access policies and begin adding additional private resources
+For a new deployment in a new resource group and virtual network:
+
+```hcl
+create_resource_group = true
+resource_group_name = "bowtie-prod"
+controller_count = 2
+create_public_ips = true
+```
+
+### Using Existing Infrastructure
+
+To deploy within existing Azure infrastructure:
+
+```hcl
+create_resource_group = false
+resource_group_name = "existing-rg"
+create_vnet = false
+vnet_name = "existing-vnet"
+create_subnet = false
+subnet_name = "existing-subnet"
+create_nsg = false
+nsg_name = "existing-nsg"
+```
+
+### Using Existing Public IPs
+
+If you already have Public IPs allocated:
+
+```hcl
+create_public_ips = false
+public_ip_addresses = ["existing-pip1", "existing-pip2"]
+```
+
+### Adding DNS Entries
+
+To automatically create DNS records in Azure DNS:
+
+```hcl
+create_dns_records = true
+dns_zone_resource_group = "dns-rg"
+```
+
+## High Availability Deployment
+
+For high availability deployments:
+
+```hcl
+controller_count = 3  # Creates a 3-node cluster
+```
+
+In HA mode:
+- The first controller becomes the primary node
+- Subsequent controllers automatically join the primary node
+- All controllers share the same site ID and sync key
+
+## Joining an Existing Cluster
+
+To add controllers to an existing cluster:
+
+```hcl
+join_existing_cluster = true
+join_existing_cluster_fqdn = "c0.bowtie.example.com"  # FQDN of existing primary controller
+controller_count = 1  # Number of controllers to add
+```
+
+When joining an existing cluster:
+- The new controllers will automatically join the existing primary controller
+- Admin credentials are not required (only needed for new cluster initialization)
+- Must use the same site ID and sync PSK as the existing cluster
+
+## Cloud-Init Configuration
+
+The deployment uses cloud-init to configure the controllers at boot time. This configuration includes:
+
+- Setting the hostname and FQDN
+- Configuring the site ID and sync key
+- Setting up the admin user
+- Configuring SSH access
+- (Optionally) Setting up SSO integration
+
+It's recommended to use [our cloud-init generation script](https://github.com/bowtieworks/cloud-init-gen) to generate the information needed in order to fully seed the deployment.
+
+Reach out to taylor@bowtie.works if you have any questions.

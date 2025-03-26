@@ -123,9 +123,22 @@ variable "join_existing_cluster" {
 }
 
 variable "join_existing_cluster_fqdn" {
-  description = "The full FQDN of the existing primary controller to join when join_existing_cluster is true (e.g., 'c0.bowtie.example.com')."
+  description = "The full FQDN of the existing primary controller to join when join_existing_cluster is true."
   type        = string
   default     = null
+}
+
+# Cloud-Init Configuration
+variable "cloud_init_first_instance" {
+  description = "Template to use for the first instance's cloud-init configuration."
+  type        = string
+  default     = "cloud-init-first-instance.tftpl"
+}
+
+variable "cloud_init_join_cluster" {
+  description = "Template to use for joining instances' cloud-init configuration."
+  type        = string
+  default     = "cloud-init-join-cluster.tftpl"
 }
 
 # Public IP Configuration
@@ -160,13 +173,13 @@ variable "sync_psk" {
 }
 
 variable "admin_email" {
-  description = "Admin email address for initialization. Required when not joining an existing cluster."
+  description = "Admin email address for initialization."
   type        = string
   default     = null
 }
 
 variable "admin_password_hash" {
-  description = "Hashed admin password for initialization. Required when not joining an existing cluster."
+  description = "Hashed admin password for initialization."
   type        = string
   sensitive   = true
   default     = null
@@ -175,7 +188,6 @@ variable "admin_password_hash" {
 variable "ssh_key" {
   description = "SSH public key for root access."
   type        = string
-  default     = "ssh-ed25519 AAAA example-key"
 }
 
 variable "sso_config" {
@@ -207,27 +219,4 @@ variable "dns_propagation_wait" {
   description = "Time to wait (in seconds) for DNS records to propagate before creating VMs."
   type        = number
   default     = 60
-}
-
-# Bowtie Configuration
-variable "bowtie_username" {
-  description = "The username for authenticating with the Bowtie cluster."
-  type        = string
-}
-
-variable "bowtie_password" {
-  description = "The password for authenticating with the Bowtie cluster."
-  type        = string
-  sensitive   = true
-}
-
-variable "ipv4_range" {
-  description = "The IPv4 CIDR range to apply in the Bowtie site configuration."
-  type        = string
-}
-
-variable "create_default_resources" {
-  description = "Whether to create default resources like IPv4/IPv6 resources, resource groups, managed domain, and DNS blocklist."
-  type        = bool
-  default     = false
 }
