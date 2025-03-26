@@ -25,7 +25,35 @@ locals {
   vpc_name_effective = var.vpc_name != "" ? var.vpc_name : (
     var.vpc_id != "" ? var.vpc_id : "bowtie"
   )
+
+  # Validate that admin credentials are provided when needed
+  admin_credentials_check = var.join_existing_cluster ? true : (
+    var.admin_email != null && var.admin_password_hash != null ? true :
+    tobool("Admin email and password hash are required when not joining an existing cluster")
+  )
+
+  # Validate that join_existing_cluster_fqdn is provided when joining an existing cluster
+  fqdn_check = !var.join_existing_cluster ? true : (
+    var.join_existing_cluster_fqdn != null ? true :
+    tobool("join_existing_cluster_fqdn is required when join_existing_cluster is true")
+  )
 }
+
+# Using local values for validation
+resource "null_resource" "validate_admin_credentials" {
+  count = local.admin_credentials_check ? 0 : 1
+  # This resource will never be created, it's just for validation
+  # If admin_credentials_check is false, Terraform will throw an error
+  # during the plan phase
+}
+
+resource "null_resource" "validate_fqdn" {
+  count = local.fqdn_check ? 0 : 1
+  # This resource will never be created, it's just for validation
+  # If fqdn_check is false, Terraform will throw an error
+  # during the plan phase
+}
+
 # Configure the Bowtie provider
 provider "bowtie" {
   # The provider will become available only after the infrastructure is deployed
@@ -61,13 +89,14 @@ module "infrastructure" {
   security_group_id     = var.security_group_id
 
   # Instance Configuration
-  instance_type         = var.instance_type
-  iam_instance_profile  = var.iam_instance_profile
-  owner_id              = var.owner_id
-  dns_zone_name         = var.dns_zone_name
-  controller_name       = var.controller_name
-  controller_count      = var.controller_count
-  join_existing_cluster = var.join_existing_cluster
+  instance_type              = var.instance_type
+  iam_instance_profile       = var.iam_instance_profile
+  owner_id                   = var.owner_id
+  dns_zone_name              = var.dns_zone_name
+  controller_name            = var.controller_name
+  controller_count           = var.controller_count
+  join_existing_cluster      = var.join_existing_cluster
+  join_existing_cluster_fqdn = var.join_existing_cluster_fqdn
 
   # EIP Configuration
   create_eips   = var.create_eips

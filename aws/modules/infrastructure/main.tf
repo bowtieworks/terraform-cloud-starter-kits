@@ -17,26 +17,26 @@ locals {
   vpc_name_effective = var.vpc_name != "" ? var.vpc_name : (
     var.vpc_id != "" ? var.vpc_id : "bowtie"
   )
-  
+
   # Determine the number of controllers to create
   actual_controller_count = var.controller_count > 0 ? var.controller_count : length(var.controller_name)
-  
+
   # Generate controller names - two sets:
   # 1. Host names (for DNS and cloud-init) - e.g., c0.example.com
   # 2. Resource names (for AWS resources) - e.g., c0-vpc-name
-  
+
   # For hostnames and DNS - simple controller names
   generated_controller_names = [
     for i in range(local.actual_controller_count) :
     i < length(var.controller_name) ? var.controller_name[i] : "c${i}"
   ]
-  
+
   # For resource naming (EC2 instances, EIPs, etc.) - prefix controller name before vpc name
   resource_controller_names = [
     for i in range(local.actual_controller_count) :
     "${local.generated_controller_names[i]}-${local.vpc_name_effective}"
   ]
-  
+
   # Validate subnet configuration
   subnet_validation_error = length(var.subnet_azs) > 0 && length(var.subnet_azs) != length(var.subnet_names) ? file("ERROR: If specifying subnet_azs, you must provide one for each subnet in subnet_names.") : null
 }
@@ -56,7 +56,7 @@ resource "aws_vpc" "vpc" {
 
 data "aws_vpc" "existing_vpc" {
   count = var.create_vpc ? 0 : (var.vpc_id != "" ? 1 : 0)
-  
+
   filter {
     name   = "vpc-id"
     values = [var.vpc_id]
@@ -76,7 +76,7 @@ resource "aws_subnet" "subnets" {
 
 data "aws_subnet" "existing_subnet" {
   count = var.subnet_id != "" ? 1 : 0
-  
+
   filter {
     name   = "subnet-id"
     values = [var.subnet_id]
@@ -145,8 +145,8 @@ resource "aws_security_group" "sg" {
   }
 
   ingress {
-    from_port   = -1  # -1 means all ICMP types
-    to_port     = -1  # -1 means all ICMP codes
+    from_port   = -1 # -1 means all ICMP types
+    to_port     = -1 # -1 means all ICMP codes
     protocol    = "icmp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -207,16 +207,16 @@ resource "aws_route53_record" "controller_records" {
 
 # Wait for DNS propagation
 resource "time_sleep" "dns_propagation" {
-  count = var.create_dns_records && var.route53_zone_id != "" ? 1 : 0
+  count      = var.create_dns_records && var.route53_zone_id != "" ? 1 : 0
   depends_on = [aws_route53_record.controller_records]
-  
+
   create_duration = "${var.dns_propagation_wait}s"
 }
 
 # Create a dependency connection
 resource "null_resource" "dns_dependency" {
   count = var.create_dns_records && var.route53_zone_id != "" ? 1 : 0
-  
+
   triggers = {
     # This will change whenever the time_sleep resource changes
     dns_propagation_complete = var.create_dns_records ? time_sleep.dns_propagation[0].id : "no-dns"
@@ -243,31 +243,31 @@ resource "aws_instance" "instance" {
   ]
 
   user_data = var.join_existing_cluster ? templatefile("${path.module}/${var.cloud_init_join_cluster}", {
-    controller_name    = local.generated_controller_names[count.index]
-    dns_zone_name      = var.dns_zone_name
-    site_id            = var.site_id
-    sync_psk           = var.sync_psk
-    primary_controller = local.generated_controller_names[0]
-    ssh_key            = var.ssh_key
-    sso_config         = var.sso_config
-  }) : (
+    controller_name         = local.generated_controller_names[count.index]
+    dns_zone_name           = var.dns_zone_name
+    site_id                 = var.site_id
+    sync_psk                = var.sync_psk
+    primary_controller_fqdn = var.join_existing_cluster_fqdn
+    ssh_key                 = var.ssh_key
+    sso_config              = var.sso_config
+    }) : (
     count.index == 0 ? templatefile("${path.module}/${var.cloud_init_first_instance}", {
-      controller_name    = local.generated_controller_names[count.index]
-      dns_zone_name      = var.dns_zone_name
-      site_id            = var.site_id
-      sync_psk           = var.sync_psk
-      admin_email        = var.admin_email
+      controller_name     = local.generated_controller_names[count.index]
+      dns_zone_name       = var.dns_zone_name
+      site_id             = var.site_id
+      sync_psk            = var.sync_psk
+      admin_email         = var.admin_email
       admin_password_hash = var.admin_password_hash
-      ssh_key            = var.ssh_key
-      sso_config         = var.sso_config
-    }) : templatefile("${path.module}/${var.cloud_init_join_cluster}", {
-      controller_name    = local.generated_controller_names[count.index]
-      dns_zone_name      = var.dns_zone_name
-      site_id            = var.site_id
-      sync_psk           = var.sync_psk
-      primary_controller = local.generated_controller_names[0]
-      ssh_key            = var.ssh_key
-      sso_config         = var.sso_config
+      ssh_key             = var.ssh_key
+      sso_config          = var.sso_config
+      }) : templatefile("${path.module}/${var.cloud_init_join_cluster}", {
+      controller_name         = local.generated_controller_names[count.index]
+      dns_zone_name           = var.dns_zone_name
+      site_id                 = var.site_id
+      sync_psk                = var.sync_psk
+      primary_controller_fqdn = "${local.generated_controller_names[0]}.${var.dns_zone_name}" # Auto-generated first controller FQDN
+      ssh_key                 = var.ssh_key
+      sso_config              = var.sso_config
     })
   )
 
@@ -278,12 +278,12 @@ resource "aws_instance" "instance" {
 
 # Associate instances with either existing or newly created EIPs
 resource "aws_eip_association" "eip_assoc" {
-  count         = local.actual_controller_count
-  instance_id   = aws_instance.instance[count.index].id
+  count       = local.actual_controller_count
+  instance_id = aws_instance.instance[count.index].id
   allocation_id = var.create_eips ? aws_eip.controller_eips[count.index].id : (
     count.index < length(var.eip_addresses) ? data.aws_eip.eip_data[count.index].id : aws_eip.controller_eips[count.index].id
   )
-  
+
   depends_on = [
     aws_instance.instance,
     aws_eip.controller_eips
@@ -302,7 +302,7 @@ resource "checkmate_http_health" "healthcheck" {
   method = "GET"
 
   # Increase timeouts and interval for better reliability
-  timeout = 1000 * 60 * 2
+  timeout  = 1000 * 60 * 3
   interval = 10000
 
   # Expect a status 200 OK
@@ -310,11 +310,11 @@ resource "checkmate_http_health" "healthcheck" {
 
   # Only require 2 successes to speed things up
   consecutive_successes = 2
-  
+
   # Attempt to continue even if the health check fails
   # This prevents blocking on first deployment when the controller needs time to initialize
   create_anyway_on_check_failure = true
-  
+
   # Depend on the EIP association to ensure that happens first
   depends_on = [aws_eip_association.eip_assoc]
 }

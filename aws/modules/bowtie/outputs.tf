@@ -26,7 +26,7 @@ output "resource_groups" {
 output "dns_management" {
   description = "The DNS management configuration (if enabled)"
   value = var.create_default_resources ? {
-    dns      = bowtie_dns.dns[0].id
+    dns       = bowtie_dns.dns[0].id
     blocklist = bowtie_dns_block_list.swg[0].id
   } : null
 }

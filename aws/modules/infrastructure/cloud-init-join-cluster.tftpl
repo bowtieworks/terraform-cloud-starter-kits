@@ -15,7 +15,7 @@ write_files:
     BOWTIE_SYNC_PSK=${sync_psk}
 - path: /var/lib/bowtie/should-join.conf
   content: |
-    entrypoint = "https://${primary_controller}.${dns_zone_name}"
+    entrypoint = "https://${primary_controller_fqdn}"
 - path: /var/lib/bowtie/skip-gui-init
 - path: /etc/update-at
 users:

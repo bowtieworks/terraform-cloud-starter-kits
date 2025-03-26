@@ -120,6 +120,12 @@ variable "join_existing_cluster" {
   default     = false
 }
 
+variable "join_existing_cluster_fqdn" {
+  description = "The FQDN of an existing primary controller to join when join_existing_cluster is true."
+  type        = string
+  default     = null
+}
+
 # EIP Configuration
 variable "create_eips" {
   description = "Whether to create elastic IP addresses instead of using existing ones."

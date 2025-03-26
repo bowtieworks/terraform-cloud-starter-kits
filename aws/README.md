@@ -18,6 +18,7 @@ This repository provides a solution for deploying a high-availability cluster of
    - AWS authentication
    - AWS resource group information 
    - Network details 
+   - See [examples](./examples/) for sample tfvar files that cover various deployment types
 
 3. Set required environment variables:
    - Bowtie Username (for API authentication)

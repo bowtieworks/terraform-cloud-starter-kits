@@ -41,9 +41,9 @@ resource "bowtie_site_range" "edge" {
 
 # Default Resources
 resource "bowtie_resource" "all_ipv6" {
-  count      = var.create_default_resources ? 1 : 0
-  name       = "All IPv6"
-  protocol   = "all"
+  count    = var.create_default_resources ? 1 : 0
+  name     = "All IPv6"
+  protocol = "all"
   location = {
     cidr = "::/0"
   }
@@ -53,9 +53,9 @@ resource "bowtie_resource" "all_ipv6" {
 }
 
 resource "bowtie_resource" "all_ipv4" {
-  count      = var.create_default_resources ? 1 : 0
-  name       = "All IPv4"
-  protocol   = "all"
+  count    = var.create_default_resources ? 1 : 0
+  name     = "All IPv4"
+  protocol = "all"
   location = {
     cidr = "0.0.0.0/0"
   }
@@ -66,16 +66,16 @@ resource "bowtie_resource" "all_ipv4" {
 
 # Default Resource Group
 resource "bowtie_resource_group" "all_access" {
-  count      = var.create_default_resources ? 1 : 0
-  name       = "All Access"
-  resources  = [bowtie_resource.all_ipv6[0].id, bowtie_resource.all_ipv4[0].id]
-  inherited  = []
+  count     = var.create_default_resources ? 1 : 0
+  name      = "All Access"
+  resources = [bowtie_resource.all_ipv6[0].id, bowtie_resource.all_ipv4[0].id]
+  inherited = []
 }
 
 # Managed Domain
 resource "bowtie_dns" "dns" {
-  count      = var.create_default_resources ? 1 : 0
-  name       = var.dns_zone_name
+  count = var.create_default_resources ? 1 : 0
+  name  = var.dns_zone_name
   servers = [{
     addr = "1.1.1.1"
   }]
@@ -89,9 +89,9 @@ resource "bowtie_dns" "dns" {
 
 # DNS Block list
 resource "bowtie_dns_block_list" "swg" {
-  count      = var.create_default_resources ? 1 : 0
-  name       = "Threat Intelligence Feed"
-  upstream   = "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/domains/tif.txt"
+  count    = var.create_default_resources ? 1 : 0
+  name     = "Threat Intelligence Feed"
+  upstream = "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/domains/tif.txt"
   override_to_allow = [
     "permitted.example.com"
   ]

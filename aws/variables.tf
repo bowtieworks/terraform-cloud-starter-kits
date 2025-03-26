@@ -121,6 +121,12 @@ variable "join_existing_cluster" {
   default     = false
 }
 
+variable "join_existing_cluster_fqdn" {
+  description = "The FQDN of an existing controller to join when join_existing_cluster is true (e.g., 'c0.bowtie.example.com')."
+  type        = string
+  default     = null
+}
+
 # EIP Configuration
 variable "create_eips" {
   description = "Whether to create elastic IP addresses instead of using existing ones."
@@ -153,15 +159,16 @@ variable "sync_psk" {
 }
 
 variable "admin_email" {
-  description = "Admin email address for initialization."
+  description = "Admin email address for initialization. Required when not joining an existing cluster."
   type        = string
-  default     = "admin@bowtie.example.com"
+  default     = null
 }
 
 variable "admin_password_hash" {
-  description = "Hashed admin password for initialization."
+  description = "Hashed admin password for initialization. Required when not joining an existing cluster."
   type        = string
   sensitive   = true
+  default     = null
 }
 
 variable "ssh_key" {
